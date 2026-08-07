@@ -52,7 +52,18 @@ function M.open(workspace)
         return
     end
 
-    api.tree.open({ path = workspace.folders[1].path })
+    local root = workspace.folders[1].path
+
+    -- api.tree.open({path=...}) only applies `path` while initialising a
+    -- fresh Explorer (nvim-tree.lib.open: `if not core.get_explorer() or
+    -- opts.path`) or while the tree window is closed. If the tree is
+    -- already open, open() just focuses the existing window and silently
+    -- ignores `path` -- so re-opening a workspace with nvim-tree already
+    -- visible left the tree rooted wherever it was before. Explicitly
+    -- change_root after open()/focus() so the root always follows the
+    -- workspace regardless of the tree's prior state.
+    api.tree.open({ path = root })
+    api.tree.change_root(root)
 
     vim.api.nvim_create_autocmd("FileType", {
         pattern = "NvimTree",
