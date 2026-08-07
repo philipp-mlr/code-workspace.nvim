@@ -6,13 +6,6 @@ M.defaults = {
     scan_depth = 1,
     on_load = nil,
     on_close = nil,
-    -- Which file-tree backend M.explorer() drives: "snacks" (default,
-    -- renders every workspace folder as a root in one Snacks.explorer
-    -- picker session) or "nvim_tree" (single nvim-tree instance rooted at
-    -- the first folder, with a keymap to switch roots -- see
-    -- integrations/nvim_tree for why nvim-tree can't show multiple roots
-    -- at once).
-    explorer = "snacks",
 }
 
 function M.resolve(user_opts)

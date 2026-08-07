@@ -5,7 +5,7 @@ Open a VS Code `.code-workspace` file in Neovim and get a fully working multi-ro
 ## Requirements
 
 - Neovim 0.10+
-- [snacks.nvim](https://github.com/folke/snacks.nvim), for the default explorer backend. Not required if you set `explorer = "nvim_tree"` and use [nvim-tree.lua](https://github.com/nvim-tree/nvim-tree.lua) instead — see [Browsing files](#browsing-files).
+- [snacks.nvim](https://github.com/folke/snacks.nvim)
 
 ## Installation
 
@@ -66,18 +66,6 @@ end)
 ```
 
 When you close the workspace (`:Workspace close`), the explorer automatically switches back to a standard Snacks.explorer at your current directory.
-
-### nvim-tree backend
-
-If you use nvim-tree.lua instead of Snacks.explorer, set `explorer = "nvim_tree"`:
-
-```lua
-opts = {
-    explorer = "nvim_tree",
-}
-```
-
-nvim-tree's core is single-root (unlike Snacks.explorer, it cannot show several roots in one tree view), so this opens one nvim-tree instance rooted at the workspace's first folder, with `<leader>cw` (inside the tree window) to switch its root between the workspace's folders via `vim.ui.select`. Closing the workspace changes the root back to your current directory.
 
 ## Auto-detecting workspaces on startup
 

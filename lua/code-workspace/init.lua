@@ -1,6 +1,6 @@
 local M = {}
 
-local _explorer = nil -- explorer backend integration, set during setup
+local _snacks = nil -- snacks integration, set during setup
 
 function M.setup(opts)
     vim.g.code_workspace_setup_called = true
@@ -29,12 +29,10 @@ function M.setup(opts)
         end,
     })
 
-    local integration_module = cfg.explorer == "nvim_tree" and "code-workspace.integrations.nvim_tree"
-        or "code-workspace.integrations.snacks"
-    local ok, int = pcall(require, integration_module)
+    local ok, int = pcall(require, "code-workspace.integrations.snacks")
     if ok then
         int.setup()
-        _explorer = int
+        _snacks = int
     end
 
     -- User hooks
@@ -82,8 +80,8 @@ function M.explorer()
     if not ws then
         return
     end
-    if _explorer then
-        _explorer.open(ws)
+    if _snacks then
+        _snacks.open(ws)
     end
 end
 
