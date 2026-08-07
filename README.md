@@ -116,4 +116,5 @@ opts = {
 |---------|-------------|
 | `:Workspace open [file]` | Load a workspace (shows picker if no file given) |
 | `:Workspace close` | Unload the current workspace |
+| `:Workspace show` | Open the file explorer for the active workspace |
 | `:Workspace status` | Show the active workspace name and folder count |

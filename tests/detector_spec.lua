@@ -124,3 +124,51 @@ describe("detector._scan_recursive", function()
         assert.equals(2, #files)
     end)
 end)
+
+describe(":Workspace show", function()
+    local explorer_calls
+    local active_workspace
+
+    before_each(function()
+        explorer_calls = {}
+        active_workspace = nil
+
+        package.loaded["code-workspace.loader"] = {
+            load = function(ws) active_workspace = ws end,
+            close = function() end,
+            active = function() return active_workspace end,
+        }
+        package.loaded["code-workspace"] = {
+            explorer = function() table.insert(explorer_calls, true) end,
+        }
+        package.loaded["code-workspace.detector"] = nil
+        detector = require("code-workspace.detector")
+        detector.setup({ scan_depth = 1 })
+    end)
+
+    after_each(function()
+        pcall(vim.api.nvim_del_user_command, "Workspace")
+        package.loaded["code-workspace"] = nil
+        package.loaded["code-workspace.loader"] = nil
+        package.loaded["code-workspace.detector"] = nil
+    end)
+
+    it("calls code-workspace.explorer() when a workspace is active", function()
+        active_workspace = { name = "test", folders = {} }
+        vim.cmd("Workspace show")
+        assert.equals(1, #explorer_calls)
+    end)
+
+    it("warns and does not call explorer() when no workspace is active", function()
+        local notified = {}
+        local orig_notify = vim.notify
+        vim.notify = function(msg, level) table.insert(notified, { msg = msg, level = level }) end
+
+        vim.cmd("Workspace show")
+
+        vim.notify = orig_notify
+        assert.equals(0, #explorer_calls)
+        assert.equals(1, #notified)
+        assert.equals(vim.log.levels.WARN, notified[1].level)
+    end)
+end)

@@ -167,6 +167,16 @@ function M.setup(cfg)
             end
         elseif subcmd == "close" then
             loader.close()
+        elseif subcmd == "show" then
+            -- Deferred require: code-workspace/init.lua requires this module
+            -- to call detector.setup(), so requiring it back at module-load
+            -- time would be circular. By the time this command runs, init.lua
+            -- has finished loading and M.explorer is available.
+            if not loader.active() then
+                vim.notify("[code-workspace] no workspace active", vim.log.levels.WARN)
+                return
+            end
+            require("code-workspace").explorer()
         elseif subcmd == "status" then
             local active = loader.active()
             if active then
@@ -180,7 +190,7 @@ function M.setup(cfg)
     end, {
         nargs = "*",
         complete = function()
-            return { "open", "close", "status" }
+            return { "open", "close", "show", "status" }
         end,
     })
 end
