@@ -141,7 +141,7 @@ function M.finder(opts, ctx)
         local items = {} -- path → picker item, for parent references
         local last_tracker = {} -- Tree node → last picker item that is its child
 
-        local function yield_node(node, folder_path)
+        local function yield_node(node, folder)
             local parent_item = node.parent and items[node.parent.path] or nil
             local status = node.status
             if not status and parent_item and parent_item.dir_status then
@@ -169,10 +169,14 @@ function M.finder(opts, ctx)
             end
             last_tracker[node.parent] = item
 
-            -- root node: always visible regardless of hidden/ignored filters
-            if node.path == folder_path then
+            -- root node: always visible regardless of hidden/ignored filters, and
+            -- labelled with the workspace's configured folder.name (falling back to
+            -- the path basename VS Code uses when name is absent) instead of the raw
+            -- path segment -- see M.format below for where this is actually rendered.
+            if node.path == folder.path then
                 item.hidden = false
                 item.ignored = false
+                item.root_name = folder.name
             end
 
             items[node.path] = item
@@ -196,6 +200,7 @@ function M.finder(opts, ctx)
                     ignored = false,
                     last = true,
                     type = "directory",
+                    root_name = folder.name,
                 })
             else
                 Tree:refresh(folder.path)
@@ -206,15 +211,40 @@ function M.finder(opts, ctx)
                 -- Tree:get() forces open=true, so we skip it to keep collapsed state.
                 local collapsed = root_node.open == false or (i > 1 and root_node.open == nil)
                 if collapsed then
-                    yield_node(root_node, folder.path)
+                    yield_node(root_node, folder)
                 else
                     Tree:get(folder.path, function(node)
-                        yield_node(node, folder.path)
+                        yield_node(node, folder)
                     end, filter_opts)
                 end
             end
         end
     end
+end
+
+--- Custom formatter for the workspace_explorer picker. Delegates to
+--- Snacks' default file formatter, then replaces the path-basename segment
+--- (tagged field = "file" in the returned highlight list) with the
+--- workspace-configured folder.name for root items -- Snacks' filename_only
+--- formatter has no concept of a display name distinct from item.file (the
+--- real filesystem path, needed for navigation/git status/etc.), it always
+--- renders vim.fn.fnamemodify(item.file, ":t"). item.label is prepended
+--- rather than substituted, so setting it alone would show "name basename"
+--- instead of replacing basename with name.
+---@param item snacks.picker.Item
+---@param picker snacks.Picker
+---@return snacks.picker.Highlight[]
+function M.format(item, picker)
+    local ret = Snacks.picker.format.file(item, picker)
+    if not item.root_name then
+        return ret
+    end
+    for _, hl in ipairs(ret) do
+        if hl.field == "file" then
+            hl[1] = item.root_name
+        end
+    end
+    return ret
 end
 
 return M
