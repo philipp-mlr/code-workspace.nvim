@@ -180,19 +180,38 @@ function M.finder(opts, ctx)
         end
 
         for i, folder in ipairs(roots) do
-            Tree:refresh(folder.path)
-            local root_node = Tree:find(folder.path)
-
-            -- Collapse when: explicitly collapsed by user (open == false),
-            -- OR it's a non-first root that has never been opened (open == nil).
-            -- Tree:get() forces open=true, so we skip it to keep collapsed state.
-            local collapsed = root_node.open == false or (i > 1 and root_node.open == nil)
-            if collapsed then
-                yield_node(root_node, folder.path)
+            -- A workspace folder may not exist on disk (e.g. removed after the
+            -- .code-workspace file was authored). VS Code still shows it as an
+            -- empty, non-expandable root instead of erroring. snacks.explorer's
+            -- Tree:get()/Tree:find() assert isdirectory() and throw otherwise,
+            -- which previously crashed the picker and left it unusable
+            -- afterwards. Yield a bare, non-expandable root item instead.
+            if vim.fn.isdirectory(folder.path) == 0 then
+                cb({
+                    file = folder.path,
+                    dir = true,
+                    open = false,
+                    text = folder.path,
+                    hidden = false,
+                    ignored = false,
+                    last = true,
+                    type = "directory",
+                })
             else
-                Tree:get(folder.path, function(node)
-                    yield_node(node, folder.path)
-                end, filter_opts)
+                Tree:refresh(folder.path)
+                local root_node = Tree:find(folder.path)
+
+                -- Collapse when: explicitly collapsed by user (open == false),
+                -- OR it's a non-first root that has never been opened (open == nil).
+                -- Tree:get() forces open=true, so we skip it to keep collapsed state.
+                local collapsed = root_node.open == false or (i > 1 and root_node.open == nil)
+                if collapsed then
+                    yield_node(root_node, folder.path)
+                else
+                    Tree:get(folder.path, function(node)
+                        yield_node(node, folder.path)
+                    end, filter_opts)
+                end
             end
         end
     end
