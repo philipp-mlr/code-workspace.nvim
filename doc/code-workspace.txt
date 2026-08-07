@@ -176,11 +176,6 @@ You can also listen to workspace events with autocommands: >lua
 :Workspace close            Unload the current workspace and restore the
                             previous working directory.
 
-                                                          *:Workspace-show*
-:Workspace show             Open the file explorer for the active workspace
-                            (equivalent to require("code-workspace").explorer()).
-                            Warns if no workspace is active.
-
                                                         *:Workspace-status*
 :Workspace status           Show the active workspace name and folder count.
 
