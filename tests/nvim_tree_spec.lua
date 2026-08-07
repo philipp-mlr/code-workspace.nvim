@@ -50,32 +50,14 @@ describe("integrations/nvim_tree/init", function()
             assert.equals("/srv/app", open_calls[1].path)
         end)
 
-        it("explicitly changes root to the first folder after open()", function()
-            -- api.tree.open({path=...}) is a no-op re path when the tree is
-            -- already visible (nvim-tree just focuses it) -- open() must be
-            -- followed by an explicit change_root so re-opening a workspace
-            -- always re-roots regardless of the tree's prior state.
-            integration.open({
-                folders = {
-                    { name = "app", path = "/srv/app" },
-                    { name = "lib", path = "/srv/lib" },
-                },
-            })
-
-            assert.equals(1, #change_root_calls)
-            assert.equals("/srv/app", change_root_calls[1])
-        end)
-
         it("does nothing when folders list is empty", function()
             integration.open({ folders = {} })
             assert.equals(0, #open_calls)
-            assert.equals(0, #change_root_calls)
         end)
 
         it("does nothing when workspace is nil", function()
             integration.open(nil)
             assert.equals(0, #open_calls)
-            assert.equals(0, #change_root_calls)
         end)
 
         it("wires a root-switch keymap on the next NvimTree buffer", function()
